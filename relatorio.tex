@@ -1,0 +1,319 @@
+\documentclass[11pt, a4paper]{article}
+
+% --- UNIVERSAL PREAMBLE BLOCK ---
+\usepackage[a4paper, top=2.5cm, bottom=2.5cm, left=2cm, right=2cm]{geometry}
+\usepackage{fontspec}
+
+\usepackage[portuguese, bidi=basic, provide=*]{babel}
+
+\babelprovide[import, onchar=ids fonts]{portuguese}
+\babelprovide[import, onchar=ids fonts]{english}
+
+% Set default/Latin font to Sans Serif in the main (rm) slot
+\babelfont{rm}{Noto Sans}
+\babelfont[portuguese]{rm}{Noto Sans}
+
+% Add because main language is not English
+\usepackage{enumitem}
+\setlist[itemize]{label=-}
+% --------------------------------
+
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{listings}
+
+% Configuração para exibição do código SQL
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{blue}\bfseries,
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\small,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=none,                    
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+\lstset{style=mystyle, language=SQL}
+
+\title{\textbf{Relatório Completo de Bases de Dados: Etapas 4 a 7}}
+\author{Trabalho Final de Bases de Dados}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+Este documento apresenta as etapas finais do projeto prático de Bases de Dados para o sistema da Agência de Turismo, abrangendo Consultas (DML), Atualizações, Criação de Visões e Simulação de Transações. Os resultados apresentados refletem o estado do banco de dados após a execução dos scripts de atualização e normalização (Etapa 5).
+
+% ==============================================================================
+% ETAPA 4
+% ==============================================================================
+\section{Etapa 4: Consultas (SQL/DML)}
+
+\subsection{4(a) Consultas com Junções de Tabelas (JOIN)}
+
+\textbf{Consulta 1: Listar os hotéis, as suas cidades e estados}
+\begin{lstlisting}
+SELECT 
+    H.nomehot AS "Nome do Hotel", 
+    C.nomecid AS "Cidade", 
+    C.estado AS "Estado"
+FROM HOTEL H
+JOIN CIDADE C ON H.idcid = C.idcid;
+\end{lstlisting}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lll}
+\toprule
+\textbf{Nome do Hotel} & \textbf{Cidade} & \textbf{Estado} \\
+\midrule
+Hotel Fasano BH & Belo Horizonte & MG \\
+Copacabana Palace & Rio de Janeiro & RJ \\
+Augusta Inn & São Paulo & SP \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Consulta 2: Mostrar os museus, fundadores e suas profissões}
+\begin{lstlisting}
+SELECT
+    PT.descricaotur AS "Nome do Museu",
+    F.nome AS "Fundador",
+    F.atividadepro AS "Profissão"
+FROM PONTOTURISTICO PT
+JOIN MUSEU M ON PT.idtur = M.idtur
+JOIN MUSFUND MF ON M.idtur = MF.idtur
+JOIN FUNDADOR F ON MF.idpes = F.idpes;
+\end{lstlisting}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lll}
+\toprule
+\textbf{Nome do Museu} & \textbf{Fundador} & \textbf{Profissão} \\
+\midrule
+Museu do Amanhã & Santiago Calatrava & Arquiteto \\
+Museu do Amanhã & Eike Batista & Empresário \\
+MM Gerdau - Museu das Minas e do Metal & Jorge Gerdau & Empresário \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Consulta 3: Listar os restaurantes, culinária e o hotel onde se localizam}
+\begin{lstlisting}
+SELECT
+    R.nomeres AS "Restaurante",
+    R.tipoculi AS "Culinária",
+    H.nomehot AS "Hotel"
+FROM RESTAURANTE R
+JOIN RESTAURANTEHOT RH ON R.idres = RH.idres
+JOIN HOTEL H ON RH.idhot = H.idhot;
+\end{lstlisting}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lll}
+\toprule
+\textbf{Restaurante} & \textbf{Culinária} & \textbf{Hotel} \\
+\midrule
+Mee Copacabana Palace & FRA & Copacabana Palace \\
+Sushi do Fasano & JAP & Hotel Fasano BH \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{4(b) Consultas com Funções de Agregação}
+
+\textbf{Consulta 4: População total das cidades cadastradas}
+\begin{lstlisting}
+SELECT SUM(populacao) AS "População Total" FROM CIDADE;
+\end{lstlisting}
+\textit{Resultado:} 21.500.000 habitantes.
+
+\textbf{Consulta 5: Refeição mais cara e mais barata entre os restaurantes}
+\begin{lstlisting}
+SELECT MAX(precomedioref) AS "Cara", MIN(precomedioref) AS "Barata" FROM RESTAURANTE;
+\end{lstlisting}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{cc}
+\toprule
+\textbf{Refeição Mais Cara (R\$)} & \textbf{Refeição Mais Barata (R\$)} \\
+\midrule
+450.00 & 80.00 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Consulta 6: Média de preço geral das diárias (TIPOQUARTO)}
+\begin{lstlisting}
+SELECT ROUND(AVG(preco), 2) AS "Média Geral" FROM TIPOQUARTO;
+\end{lstlisting}
+\textit{Resultado:} R\$ 871.43 (Média calculada sobre todos os tipos disponíveis).
+
+\subsection{4(c) Consultas com Agregação, GROUP BY e HAVING}
+
+\textbf{Consulta 7: Quantidade de quartos por hotel}
+\begin{lstlisting}
+SELECT H.nomehot AS "Hotel", COUNT(Q.numquarto) AS "Qtd"
+FROM HOTEL H JOIN QUARTO Q ON H.idhot = Q.idhot
+GROUP BY H.nomehot HAVING COUNT(Q.numquarto) > 2;
+\end{lstlisting}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lc}
+\toprule
+\textbf{Hotel} & \textbf{Quantidade de Quartos} \\
+\midrule
+Hotel Fasano BH & 4 \\
+Augusta Inn & 3 \\
+Copacabana Palace & 3 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Consulta 8: Média de diária por hotel (Apenas médias acima de R\$ 400)}
+\begin{lstlisting}
+SELECT H.nomehot AS "Hotel", ROUND(AVG(TQ.preco), 2) AS "Média"
+FROM HOTEL H JOIN TIPOQUARTO TQ ON H.idhot = TQ.idhot
+GROUP BY H.nomehot HAVING AVG(TQ.preco) > 400.00;
+\end{lstlisting}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lc}
+\toprule
+\textbf{Hotel} & \textbf{Média de Diária (R\$)} \\
+\midrule
+Hotel Fasano BH & 500.00 \\
+Copacabana Palace & 1700.00 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Consulta 9: Total de pontos turísticos por cidade (Mínimo 2)}
+\begin{lstlisting}
+SELECT C.nomecid AS "Cidade", COUNT(PT.idtur) AS "Total"
+FROM CIDADE C JOIN PONTOTURISTICO PT ON C.idcid = PT.idcid
+GROUP BY C.nomecid HAVING COUNT(PT.idtur) >= 2;
+\end{lstlisting}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lc}
+\toprule
+\textbf{Cidade} & \textbf{Total de Pontos Turísticos} \\
+\midrule
+Belo Horizonte & 2 \\
+Rio de Janeiro & 2 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\clearpage
+
+% ==============================================================================
+% ETAPA 5
+% ==============================================================================
+\section{Etapa 5: Atualizações (SQL/DML)}
+
+Esta seção documenta a implementação de integridade referencial e atualizações complexas.
+
+\subsection{5(a) Inserção com Integridade Referencial}
+\begin{lstlisting}
+INSERT INTO PONTOTURISTICO (idtur, idcid, tipotur, endereco, descricaotur)
+VALUES (6, 1, 'M', 'Rua da Bahia, 1149', 'Museu de Arte da Pampulha');
+\end{lstlisting}
+
+\subsection{5(b) Inserção com Cláusula CHECK}
+O banco impede a inserção de hotéis com estrelas fora do intervalo [1,5].
+
+\subsection{5(c) Inserção via SELECT (Tabela de Alto Padrão)}
+\begin{lstlisting}
+INSERT INTO HOTEIS_ALTO_PADRAO (idhot, nomehot, estrelas)
+SELECT idhot, nomehot, estrelas FROM HOTEL WHERE estrelas >= 4;
+\end{lstlisting}
+
+\subsection{5(d) Remoção com CASCADE}
+A remoção do Hotel 3 (\textit{Augusta Inn}) eliminou automaticamente todos os seus quartos e tipos de quarto.
+
+\subsection{5(e) Remoção com SET NULL}
+Configurou-se a FK de Cidade em Ponto Turístico para \texttt{SET NULL}. Ao remover o Rio de Janeiro (idcid=2), os pontos turísticos associados permaneceram no banco com a cidade nula.
+
+\subsection{5(f) Atualização por Subconsulta}
+Aumento de 15\% nas diárias dos hotéis localizados em Belo Horizonte (idcid=1).
+\begin{lstlisting}
+UPDATE TIPOQUARTO SET preco = preco * 1.15
+WHERE idhot IN (SELECT idhot FROM HOTEL WHERE idcid = 1);
+\end{lstlisting}
+
+\clearpage
+
+% ==============================================================================
+% ETAPA 6
+% ==============================================================================
+\section{Etapa 6: Visões (Views)}
+
+\textbf{Visão 1: Hotéis 5 Estrelas (Integridade)}
+\begin{lstlisting}
+CREATE VIEW view_hoteis_5_estrelas AS
+SELECT idhot, idcid, estrelas, enderecohot, nomehot FROM HOTEL
+WHERE estrelas = 5 WITH LOCAL CHECK OPTION;
+\end{lstlisting}
+
+\textbf{Visão 2: Catálogo Turístico (Disponibilidade)}
+\begin{lstlisting}
+CREATE VIEW view_catalogo_turistico AS
+SELECT PT.idtur, PT.descricaotur, C.nomecid, C.estado
+FROM PONTOTURISTICO PT JOIN CIDADE C ON PT.idcid = C.idcid;
+\end{lstlisting}
+
+\textbf{Visão 3: Fundadores (Confidencialidade)}
+\begin{lstlisting}
+CREATE VIEW view_fundadores_publico AS
+SELECT nome AS nome_fundador, nacionalidade, atividadepro AS profissao
+FROM FUNDADOR;
+\end{lstlisting}
+
+\clearpage
+
+% ==============================================================================
+% ETAPA 7
+% ==============================================================================
+\section{Etapa 7: Transações}
+
+\subsection{7(a) Transações Concorrentes}
+Simulação de isolamento onde o Terminal 2 não visualiza o \texttt{UPDATE} do Terminal 1 até que ocorra o \texttt{COMMIT}.
+
+\subsection{7(b) Simulação de Deadlock}
+Ocorrência de bloqueio mútuo ao tentar atualizar registros cruzados (\textit{Hotel 1} e \textit{Hotel 2}) simultaneamente em duas sessões.
+
+\textbf{Erro gerado pelo PostgreSQL:}
+\begin{verbatim}
+ERROR:  deadlock detected
+Process 215 waits for ShareLock on transaction 779; blocked by process 91.
+Process 91 waits for ShareLock on transaction 780; blocked by process 215. 
+
+SQL state: 40P01
+Detail: Process 215 waits for ShareLock on transaction 779; blocked by process 91.
+Process 91 waits for ShareLock on transaction 780; blocked by process 215.
+Hint: See server log for query details.
+Context: while updating tuple (0,1) in relation "hotel"
+\end{verbatim}
+
+\end{document}
