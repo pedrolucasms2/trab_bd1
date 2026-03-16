@@ -16,3 +16,5 @@ DELETE FROM CASADESHOW WHERE idtur = 3;
 UPDATE TIPOQUARTO
 SET preco = preco * 1.05
 WHERE idhot IN (SELECT idhot FROM HOTEL WHERE estrelas = 5);
+
+UPDATE TIPOQUARTO SET preco = preco * 1.10 WHERE tipoquarto = 'C';

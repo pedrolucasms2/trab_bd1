@@ -38,9 +38,3 @@ FROM CIDADE C
 JOIN PONTOTURISTICO PT ON C.idcid = PT.idcid
 GROUP BY C.nomecid
 HAVING COUNT(PT.idtur) >= 2;
-
-SELECT * FROM v_hoteis_luxo;
-
-SELECT * FROM v_info_restaurantes;
-
-SELECT * FROM v_fundadores_publico;

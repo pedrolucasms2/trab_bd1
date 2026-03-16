@@ -9,3 +9,9 @@ JOIN CIDADE C ON R.idcid = C.idcid;
 
 CREATE OR REPLACE VIEW v_fundadores_publico AS
 SELECT idpes, nome, nacionalidade FROM FUNDADOR;
+
+SELECT * FROM v_hoteis_luxo;
+
+SELECT * FROM v_info_restaurantes;
+
+SELECT * FROM v_fundadores_publico;
